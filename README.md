@@ -53,23 +53,37 @@ open "dist/USB Decoder.app"
 
 ---
 
-### Linux / Windows (Run Directly from Python)
+### Absolutely — great idea! 🔥  
+Running inside a **virtual environment (venv)** is much more professional, safer, and keeps things clean — especially for Linux and Windows users.
 
-If you are using Linux or Windows, you can run directly from source without building an app bundle:
+Here’s the **updated Linux/Windows instructions** you can directly replace in your README:
+
+---
+
+### Linux / Windows (Run Inside a Virtual Environment)
 
 ```bash
 # 1) Clone the repository and enter it
 git clone https://github.com/fuhaku/USBdecoder-app.git
 cd USBdecoder-app
 
-# 2) Install required dependencies
+# 2) Create and activate a virtual environment
+# Linux/macOS:
+python3 -m venv venv
+source venv/bin/activate
+
+# Windows (PowerShell):
+python -m venv venv
+./venv/Scripts/Activate.ps1
+
+# 3) Install required dependencies
 pip install PyQt6
 
-# 3) Run the application
+# 4) Run the application
 python USBdecoder-native.py
 ```
 
-> Note: On Windows, you can use PowerShell or CMD. On Linux, use your terminal.
+> ✅ Note: Always activate the virtual environment (`source venv/bin/activate` or `Activate.ps1`) before running the app.
 
 ---
 
