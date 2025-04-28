@@ -24,8 +24,9 @@
 git clone https://github.com/fuhaku/USBdecoder-app.git
 cd USBdecoder-app
 
-# 2) Make helper scripts executable
-ochmod +x setup.sh build-gui-app.sh
+# 2) Make helper scripts executable - may require sudo
+chmod +x setup.sh 
+chmod +x build-gui-app.sh
 
 # 3) Bootstrap, build, and package in one go
 ./setup.sh
