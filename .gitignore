@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+dmg-folder/
+*.egg-info/
+
+# macOS app bundles and disk images
+USB Decoder.app/
+*.dmg
+*.pkg
+
+# Virtual environments
+venv/
+pkg-venv/
+.env/
+
+# PyInstaller local files
+build-gui-app.sh  # if you regenerate this
+*.spec
+
+# Icon and resource files (if you don’t want them in VCS)
+*.icns
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Thumbnails
+._*
