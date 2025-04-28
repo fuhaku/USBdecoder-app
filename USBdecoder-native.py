@@ -64,14 +64,37 @@ class USBDecoderApp(QWidget):
     def load_file(self):
         file_dialog = QFileDialog()
         path, _ = file_dialog.getOpenFileName(self, 'Open Binary File', '', 'All Files (*)')
-        if path:
+        if not path:
+            return
+
+        try:
+            # Read raw file bytes
+            with open(path, 'rb') as f:
+                content = f.read()
+
+            # Detect whether this is an ASCII-hex text file
             try:
-                with open(path, 'rb') as f:
-                    content = f.read()
-                    hex_str = ' '.join(f'{b:02X}' for b in content)
-                    self.input_text.setPlainText(hex_str)
-            except Exception as e:
-                QMessageBox.critical(self, 'Error', str(e))
+                text = content.decode('ascii')
+                is_hex_text = all(c in '0123456789abcdefABCDEF \t\r\n'
+                                  for c in text)
+            except UnicodeDecodeError:
+                is_hex_text = False
+
+            if is_hex_text:
+                # Parse ASCII hex pairs into bytes
+                tokens = re.findall(r'[0-9A-Fa-f]{2}', text)
+                raw_bytes = bytes(int(tok, 16) for tok in tokens)
+            else:
+                # Treat as pure binary
+                raw_bytes = content
+
+            # Render canonical hex
+            hex_str = ' '.join(f'{b:02X}' for b in raw_bytes)
+            self.input_text.setPlainText(hex_str)
+
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', str(e))
+
 
     def convert_data(self):
         mode = self.mode_select.currentText()
