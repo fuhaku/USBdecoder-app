@@ -27,6 +27,7 @@ Ideal for:
 - 🧹 **Clear Button** to reset input and output fields
 - 🚫 **Friendly Error Handling** with pop-up messages
 - 📜 **UTF-16 Unicode decoding** for embedded USB strings
+- 🍏 Creates a standalone .app and .dmg installer for easy distribution on macOS
 
 ---
 
