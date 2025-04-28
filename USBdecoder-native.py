@@ -783,7 +783,7 @@ class USBDecoderApp(QMainWindow):
     
     def show_about(self):
         QMessageBox.about(self, "About USB Descriptor Decoder",
-                          "USB Descriptor Decoder v1.0\n\n"
+                          "USB Descriptor Decoder v2.0\n\n"
                           "A tool to decode USB descriptor bytes into human-readable format.\n\n"
                           "Useful for USB developers, security researchers, and anyone working with low-level USB protocols.\n\n"
                           "This tool helps decode standard USB descriptors including:\n"
