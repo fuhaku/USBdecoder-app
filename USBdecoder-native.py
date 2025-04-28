@@ -1,226 +1,94 @@
 import sys
-import re
 import json
+
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QTextEdit, QFileDialog, QComboBox, QMessageBox
+    QApplication, QWidget, QPushButton, QVBoxLayout,
+    QLabel, QTextEdit, QFileDialog, QComboBox
 )
-from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import Qt
+
+def parse_device_descriptor(data):
+    if len(data) < 18:
+        raise ValueError("Data too short for a USB Device Descriptor (needs 18 bytes)")
+
+    descriptor = {
+        "bLength": data[0],
+        "bDescriptorType": data[1],
+        "bcdUSB": f"0x{data[3]:02x}{data[2]:02x}",  # Little Endian
+        "bDeviceClass": data[4],
+        "bDeviceSubClass": data[5],
+        "bDeviceProtocol": data[6],
+        "bMaxPacketSize0": data[7],
+        "idVendor": f"0x{data[9]:02x}{data[8]:02x}",
+        "idProduct": f"0x{data[11]:02x}{data[10]:02x}",
+        "bcdDevice": f"0x{data[13]:02x}{data[12]:02x}",
+        "iManufacturer": data[14],
+        "iProduct": data[15],
+        "iSerialNumber": data[16],
+        "bNumConfigurations": data[17],
+    }
+    return descriptor
 
 class USBDecoderApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('USB Payload Decoder')
-        self.setGeometry(100, 100, 800, 600)
-        self.setWindowIcon(QIcon('usb_re_icon.icns'))  # Set a window icon
-        self.init_ui()
+        self.initUI()
 
-    def init_ui(self):
+    def initUI(self):
+        self.setWindowTitle('USB Payload Decoder')
+
         layout = QVBoxLayout()
 
-        self.mode_select = QComboBox()
-        self.mode_select.addItems([
-            'device_descriptor',
-            'configuration_descriptor',
-            'string_descriptor',
-            'interface_descriptor',
-            'endpoint_descriptor',
-            'hid_report',
-            'hex_dump',
-            'raw'
-        ])
+        self.label = QLabel('Select Conversion Type:')
+        layout.addWidget(self.label)
 
-        self.input_text = QTextEdit()
-        self.input_text.setPlaceholderText('Paste hex dump here or load a binary file...')
+        self.combo = QComboBox()
+        self.combo.addItem("device_descriptor")
+        layout.addWidget(self.combo)
 
-        self.convert_button = QPushButton('Convert')
-        self.upload_button = QPushButton('Upload File')
-        self.quit_button = QPushButton('Quit')
+        self.textEdit = QTextEdit()
+        layout.addWidget(self.textEdit)
 
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.upload_button)
-        button_layout.addWidget(self.convert_button)
-        button_layout.addWidget(self.quit_button)
+        self.uploadButton = QPushButton('Upload File')
+        self.uploadButton.clicked.connect(self.uploadFile)
+        layout.addWidget(self.uploadButton)
 
-        self.output_text = QTextEdit()
-        self.output_text.setPlaceholderText('Converted output will appear here...')
-        self.output_text.setReadOnly(True)
+        self.convertButton = QPushButton('Convert')
+        self.convertButton.clicked.connect(self.convertData)
+        layout.addWidget(self.convertButton)
 
-        layout.addWidget(QLabel('Select Conversion Type:'))
-        layout.addWidget(self.mode_select)
-        layout.addWidget(QLabel('Input Hex or File Content:'))
-        layout.addWidget(self.input_text)
-        layout.addLayout(button_layout)
-        layout.addWidget(QLabel('Result:'))
-        layout.addWidget(self.output_text)
+        self.quitButton = QPushButton('Quit')
+        self.quitButton.clicked.connect(self.close)
+        layout.addWidget(self.quitButton)
+
+        self.resultText = QTextEdit()
+        self.resultText.setReadOnly(True)
+        layout.addWidget(self.resultText)
 
         self.setLayout(layout)
 
-        self.upload_button.clicked.connect(self.load_file)
-        self.convert_button.clicked.connect(self.convert_data)
-        self.quit_button.clicked.connect(self.close)
+    def uploadFile(self):
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open File", "", "All Files (*)")
+        if fileName:
+            with open(fileName, 'r') as file:
+                content = file.read()
+                self.textEdit.setPlainText(content)
 
-    def load_file(self):
-        file_dialog = QFileDialog()
-        path, _ = file_dialog.getOpenFileName(self, 'Open Binary File', '', 'All Files (*)')
-        if not path:
-            return
-
+    def convertData(self):
+        conversionType = self.combo.currentText()
+        hexData = self.textEdit.toPlainText()
         try:
-            # Read raw file bytes
-            with open(path, 'rb') as f:
-                content = f.read()
-
-            # Detect whether this is an ASCII-hex text file
-            try:
-                text = content.decode('ascii')
-                is_hex_text = all(c in '0123456789abcdefABCDEF \t\r\n'
-                                  for c in text)
-            except UnicodeDecodeError:
-                is_hex_text = False
-
-            if is_hex_text:
-                # Parse ASCII hex pairs into bytes
-                tokens = re.findall(r'[0-9A-Fa-f]{2}', text)
-                raw_bytes = bytes(int(tok, 16) for tok in tokens)
+            bytes_list = bytes.fromhex(hexData.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace(",", " "))
+            if conversionType == "device_descriptor":
+                result = parse_device_descriptor(bytes_list)
             else:
-                # Treat as pure binary
-                raw_bytes = content
-
-            # Render canonical hex
-            hex_str = ' '.join(f'{b:02X}' for b in raw_bytes)
-            self.input_text.setPlainText(hex_str)
-
+                result = {"error": "Unsupported conversion type selected."}
+            pretty_result = json.dumps(result, indent=4)
+            self.resultText.setPlainText(pretty_result)
         except Exception as e:
-            QMessageBox.critical(self, 'Error', str(e))
-
-
-    def convert_data(self):
-        mode = self.mode_select.currentText()
-        hex_data = self.input_text.toPlainText()
-
-        try:
-            tokens = re.findall(r'[0-9A-Fa-f]{2}', hex_data)
-            if not tokens:
-                raise ValueError('No valid hex bytes found')
-            raw = bytes(int(t, 16) for t in tokens)
-
-            # ─── SUGGEST CORRECT DESCRIPTOR MODE ───
-            descriptor_modes = {
-                1: 'device_descriptor',
-                2: 'configuration_descriptor',
-                3: 'string_descriptor',
-                4: 'interface_descriptor',
-                5: 'endpoint_descriptor',
-            }
-            if len(raw) > 1 and mode in descriptor_modes.values():
-                dt = raw[1]
-                correct = descriptor_modes.get(dt)
-                if correct and correct != mode:
-                    QMessageBox.information(
-                        self,
-                        'Did you mean…?',
-                        f"This byte stream has bDescriptorType={dt}.\n"
-                        f"You selected '{mode}', but you probably want '{correct}'."
-                    )
-            # ───────────────────────────────────────
-
-            if mode == 'device_descriptor':
-                parsed = parse_device_descriptor(raw)
-            elif mode == 'configuration_descriptor':
-                parsed = parse_configuration_descriptor(raw)
-            # ─── SHOW THE PARSED RESULT ───
-            self.output_text.setPlainText(json.dumps(parsed, indent=2))
-
-        except Exception as e:
-            QMessageBox.critical(self, 'Error', str(e))
-
-
-# ========== USB Descriptor Parsers ==========
-
-def parse_device_descriptor(data: bytes):
-    if len(data) < 18:
-        raise ValueError('Device Descriptor requires at least 18 bytes')
-    return {
-        'bLength': data[0],
-        'bDescriptorType': data[1],
-        'bcdUSB': hex(data[2] | (data[3] << 8)),
-        'bDeviceClass': data[4],
-        'bDeviceSubClass': data[5],
-        'bDeviceProtocol': data[6],
-        'bMaxPacketSize0': data[7],
-        'idVendor': hex(data[8] | (data[9] << 8)),
-        'idProduct': hex(data[10] | (data[11] << 8)),
-        'bcdDevice': hex(data[12] | (data[13] << 8)),
-        'iManufacturer': data[14],
-        'iProduct': data[15],
-        'iSerialNumber': data[16],
-        'bNumConfigurations': data[17]
-    }
-
-def parse_configuration_descriptor(data: bytes):
-    if len(data) < 9:
-        raise ValueError('Configuration Descriptor requires at least 9 bytes')
-    return {
-        'bLength': data[0],
-        'bDescriptorType': data[1],
-        'wTotalLength': data[2] | (data[3] << 8),
-        'bNumInterfaces': data[4],
-        'bConfigurationValue': data[5],
-        'iConfiguration': data[6],
-        'bmAttributes': hex(data[7]),
-        'bMaxPower': data[8]
-    }
-
-def parse_string_descriptor(data: bytes):
-    if len(data) < 2:
-        raise ValueError('String Descriptor requires at least 2 bytes')
-    length = data[0]
-    dtype = data[1]
-    raw_chars = data[2:length]
-    try:
-        s = raw_chars.decode('utf-16-le')
-    except Exception:
-        s = ''.join(f"\\x{b:02X}" for b in raw_chars)
-    return {
-        'bLength': length,
-        'bDescriptorType': dtype,
-        'string': s
-    }
-
-def parse_interface_descriptor(data: bytes):
-    if len(data) < 9:
-        raise ValueError('Interface Descriptor requires at least 9 bytes')
-    return {
-        'bLength': data[0],
-        'bDescriptorType': data[1],
-        'bInterfaceNumber': data[2],
-        'bAlternateSetting': data[3],
-        'bNumEndpoints': data[4],
-        'bInterfaceClass': data[5],
-        'bInterfaceSubClass': data[6],
-        'bInterfaceProtocol': data[7],
-        'iInterface': data[8]
-    }
-
-def parse_endpoint_descriptor(data: bytes):
-    if len(data) < 7:
-        raise ValueError('Endpoint Descriptor requires at least 7 bytes')
-    wMax = data[4] | (data[5] << 8)
-    return {
-        'bLength': data[0],
-        'bDescriptorType': data[1],
-        'bEndpointAddress': data[2],
-        'bmAttributes': data[3],
-        'wMaxPacketSize': wMax,
-        'bInterval': data[6]
-    }
-
-# ========== Run App ==========
+            self.resultText.setPlainText(f"Error: {str(e)}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = USBDecoderApp()
-    window.show()
+    ex = USBDecoderApp()
+    ex.show()
     sys.exit(app.exec())
