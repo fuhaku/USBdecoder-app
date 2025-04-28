@@ -104,4 +104,3 @@ See [LICENSE](LICENSE) for full details.
 ---
 
 # 🚀 Happy decoding and USB exploration!
-```
