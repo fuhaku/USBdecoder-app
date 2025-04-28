@@ -47,6 +47,33 @@ def parse_device_descriptor(data):
 
     return "\n".join(output)
 
+def parse_string_descriptor(data):
+    if len(data) < 2:
+        raise ValueError("String Descriptor requires at least 2 bytes")
+    
+    length = data[0]
+    descriptor_type = data[1]
+    if descriptor_type != 3:
+        raise ValueError("Not a String Descriptor (bDescriptorType != 3)")
+
+    raw_string_bytes = data[2:length]
+    try:
+        decoded_string = raw_string_bytes.decode('utf-16-le')
+    except Exception as e:
+        decoded_string = f"<decode error: {e}>"
+
+    output = []
+    output.append(f"* {data[0]:02X} → `bLength` = {length} bytes (Total length of this descriptor)")
+    output.append(f"* {data[1]:02X} → `bDescriptorType` = {descriptor_type} (STRING descriptor)")
+    for i in range(2, length, 2):
+        if i+1 < length:
+            char_bytes = f"{data[i]:02X} {data[i+1]:02X}"
+            char = raw_string_bytes[i-2:i-2+2].decode('utf-16-le', errors='replace')
+            output.append(f"* {char_bytes} → '{char}' (UTF-16 LE)")
+    output.append(f"* Decoded String: \"{decoded_string}\"")
+
+    return "\n".join(output)
+
 class USBDecoderApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -62,6 +89,13 @@ class USBDecoderApp(QWidget):
 
         self.combo = QComboBox()
         self.combo.addItem("device_descriptor")
+        self.combo.addItem("configuration_descriptor")
+        self.combo.addItem("string_descriptor")
+        self.combo.addItem("interface_descriptor")
+        self.combo.addItem("endpoint_descriptor")
+        self.combo.addItem("hid_report")
+        self.combo.addItem("hex_dump")
+        self.combo.addItem("raw_bytes")
         layout.addWidget(self.combo)
 
         self.textEdit = QTextEdit()
@@ -97,10 +131,14 @@ class USBDecoderApp(QWidget):
         hexData = self.textEdit.toPlainText()
         try:
             bytes_list = bytes.fromhex(hexData.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace(",", " "))
+
             if conversionType == "device_descriptor":
                 result = parse_device_descriptor(bytes_list)
+            elif conversionType == "string_descriptor":
+                result = parse_string_descriptor(bytes_list)
             else:
-                result = "Unsupported conversion type selected."
+                result = f"Parsing for '{conversionType}' is not yet implemented."
+
             self.resultText.setPlainText(result)
         except Exception as e:
             self.resultText.setPlainText(f"Error: {str(e)}")
