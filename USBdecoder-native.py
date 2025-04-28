@@ -101,10 +101,26 @@ class USBDecoderApp(QWidget):
         hex_data = self.input_text.toPlainText()
 
         try:
-            tokens = re.findall(r'[0-9A-Fa-f]{2}', hex_data)
-            if not tokens:
-                raise ValueError('No valid hex bytes found')
-            raw = bytes(int(t, 16) for t in tokens)
+            # ─── tokenize on commas or spaces, allow decimal or “0xNN” hex ───
+            parts = re.split(r'[,\s]+', hex_data.strip())
+            if not parts or all(p == '' for p in parts):
+                raise ValueError('No valid byte values found')
+            vals = []
+            for p in parts:
+                if not p:
+                    continue
+                try:
+                    # int(x,0) parses “0xFF” as hex, otherwise decimal
+                    b = int(p, 0)
+                except ValueError:
+                    # bare‐hex like “FF” → base-16
+                    b = int(p, 16)
+                if not (0 <= b <= 0xFF):
+                    raise ValueError(f'Byte out of range: {b}')
+                vals.append(b)
+            raw = bytes(vals)
+            # ─────────────────────────────────────────────────────────────
+
 
             # ─── SUGGEST CORRECT DESCRIPTOR MODE ───
             descriptor_modes = {
@@ -126,10 +142,21 @@ class USBDecoderApp(QWidget):
                     )
             # ───────────────────────────────────────
 
+            # ─── DISPATCH TO THE RIGHT PARSER ───
             if mode == 'device_descriptor':
                 parsed = parse_device_descriptor(raw)
             elif mode == 'configuration_descriptor':
                 parsed = parse_configuration_descriptor(raw)
+            elif mode == 'string_descriptor':
+                parsed = parse_string_descriptor(raw)
+            elif mode == 'interface_descriptor':
+                parsed = parse_interface_descriptor(raw)
+            elif mode == 'endpoint_descriptor':
+                parsed = parse_endpoint_descriptor(raw)
+            else:
+                # never happens unless someone adds a new combo-entry
+                raise ValueError(f"Unknown conversion mode: {mode}")
+
             # ─── SHOW THE PARSED RESULT ───
             self.output_text.setPlainText(json.dumps(parsed, indent=2))
 
