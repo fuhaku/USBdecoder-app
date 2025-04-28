@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./usb_decoder_re.icns" alt="USB Decoder Icon" width="120" height="120">
+  <img src="./usb_decoder_re.png" alt="USB Decoder Icon" width="120" height="120">
 </p>
 
 # USB Decoder
