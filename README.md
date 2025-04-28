@@ -28,7 +28,7 @@ cd USBdecoder-app
 chmod +x setup.sh 
 chmod +x build-gui-app.sh
 
-# 3) Bootstrap, build, and package in one go
+# 3) Bootstrap, build, and package in one go. May also require sudo if already run once.
 ./setup.sh
 
 # 4) Launch the packaged app
