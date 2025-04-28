@@ -44,4 +44,4 @@ build-gui-app.sh  # if you regenerate this
 *.sublime-workspace
 
 # Thumbnails
-._*
+# ._*
