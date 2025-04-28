@@ -26,7 +26,7 @@ build-gui-app.sh  # if you regenerate this
 *.spec
 
 # Icon and resource files (if you don’t want them in VCS)
-*.icns
+# *.icns
 
 # Logs and temporary files
 *.log
