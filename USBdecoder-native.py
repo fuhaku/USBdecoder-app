@@ -99,63 +99,43 @@ class USBDecoderApp(QWidget):
     def convert_data(self):
         mode = self.mode_select.currentText()
         hex_data = self.input_text.toPlainText()
+
         try:
             tokens = re.findall(r'[0-9A-Fa-f]{2}', hex_data)
             if not tokens:
                 raise ValueError('No valid hex bytes found')
             raw = bytes(int(t, 16) for t in tokens)
-        # ─── SUGGEST CORRECT DESCRIPTOR MODE ───
-        descriptor_modes = {
-            1: 'device_descriptor',
-            2: 'configuration_descriptor',
-            3: 'string_descriptor',
-            4: 'interface_descriptor',
-            5: 'endpoint_descriptor',
-        }
-        if len(raw) > 1 and mode in descriptor_modes.values():
-            dt = raw[1]
-            correct = descriptor_modes.get(dt)
-            if correct and correct != mode:
-                QMessageBox.information(
-                    self,
-                    'Did you mean…?',
-                    f"This byte stream has bDescriptorType={dt}.\n"
-                    f"You selected '{mode}', but you probably want '{correct}'."
-                )
+
+            # ─── SUGGEST CORRECT DESCRIPTOR MODE ───
+            descriptor_modes = {
+                1: 'device_descriptor',
+                2: 'configuration_descriptor',
+                3: 'string_descriptor',
+                4: 'interface_descriptor',
+                5: 'endpoint_descriptor',
+            }
+            if len(raw) > 1 and mode in descriptor_modes.values():
+                dt = raw[1]
+                correct = descriptor_modes.get(dt)
+                if correct and correct != mode:
+                    QMessageBox.information(
+                        self,
+                        'Did you mean…?',
+                        f"This byte stream has bDescriptorType={dt}.\n"
+                        f"You selected '{mode}', but you probably want '{correct}'."
+                    )
+            # ───────────────────────────────────────
 
             if mode == 'device_descriptor':
                 parsed = parse_device_descriptor(raw)
             elif mode == 'configuration_descriptor':
                 parsed = parse_configuration_descriptor(raw)
-            elif mode == 'string_descriptor':
-                parsed = parse_string_descriptor(raw)
-            elif mode == 'interface_descriptor':
-                parsed = parse_interface_descriptor(raw)
-            elif mode == 'endpoint_descriptor':
-                parsed = parse_endpoint_descriptor(raw)
-            elif mode == 'hid_report':
-                parsed = {'report_bytes': list(raw)}
-            elif mode == 'hex_dump':
-                parsed = ' '.join(f"{b:02X}" for b in raw)
-            elif mode == 'raw':
-                parsed = {'raw_bytes': list(raw)}
-            else:
-                raise ValueError('Unsupported conversion type')
-
-            if isinstance(parsed, dict):
-                # nice “key: value” per line
-                lines = [f"{k}: {v}" for k, v in parsed.items()]
-                self.output_text.setPlainText("\n".join(lines))
-            elif isinstance(parsed, list):
-                # comma-separated list
-                self.output_text.setPlainText(", ".join(str(x) for x in parsed))
-            else:
-                # string (hex dump, errors, etc.)
-                self.output_text.setPlainText(str(parsed))
-
+            # ─── SHOW THE PARSED RESULT ───
+            self.output_text.setPlainText(json.dumps(parsed, indent=2))
 
         except Exception as e:
             QMessageBox.critical(self, 'Error', str(e))
+
 
 # ========== USB Descriptor Parsers ==========
 
