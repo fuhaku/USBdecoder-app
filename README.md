@@ -5,6 +5,7 @@
 # USB Decoder
 
 **USB Decoder** is a Python-based application for converting raw USB protocol payloads into human-readable formats.  
+
 It is cross-platform at the source code level (Linux, Windows,...cOS), but the packaged GUI (`.app`) currently targets **macOS**.
 
 Ideal for:
@@ -28,7 +29,7 @@ Ideal for:
   - BOS Descriptor
   - Interface Association (IAD) Descriptor
   - DFU Functional Descriptor
-- 🔎 **Smart Suggestions**: If you pick the wrong descriptor type, the app suggests the correct one
+- 🔎 **Smart Suggestions**: If you pick the wrong descriptor type when manually selecting, the app suggests the correct one
 - 📁 **Load from File**: Open binary files or `.txt` files containing ASCII hex — both are parsed correctly
 - 🧹 **Clear All**: Reset both input and output fields with one click
 - 📋 **Copy to Clipboard**: Copy decoded output instantly to your clipboard
