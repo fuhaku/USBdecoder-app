@@ -51,15 +51,6 @@ chmod +x build-gui-app.sh
 open "dist/USB Decoder.app"
 ```
 
----
-
-### Absolutely — great idea! 🔥  
-Running inside a **virtual environment (venv)** is much more professional, safer, and keeps things clean — especially for Linux and Windows users.
-
-Here’s the **updated Linux/Windows instructions** you can directly replace in your README:
-
----
-
 ### Linux / Windows (Run Inside a Virtual Environment)
 
 ```bash
