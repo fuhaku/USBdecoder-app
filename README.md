@@ -2,6 +2,10 @@
   <img src="./usb_decoder_re.png" alt="USB Decoder Icon" width="120" height="120">
 </p>
 
+<img width="1001" alt="Screenshot 2025-04-28 at 9 32 20 AM" src="https://github.com/user-attachments/assets/df71d3f1-4e7a-4d91-9c9b-abac6866bf59" />
+<img width="1001" alt="Screenshot 2025-04-28 at 9 31 43 AM" src="https://github.com/user-attachments/assets/0e647d9f-d95b-4459-9634-25659ee2fc41" />
+
+
 # USB Decoder
 
 **USB Decoder** is a Python-based application for converting raw USB protocol payloads into human-readable formats.  
