@@ -105,18 +105,3 @@ See [LICENSE](LICENSE) for full details.
 
 # 🚀 Happy decoding and USB exploration!
 ```
-
----
-
-✅ This version:
-- 100% matches your real workflow
-- Explicitly explains the Mac vs Linux/Windows difference
-- Provides professional installation steps
-- Includes your beautiful app icon reference
-- Maintains your friendly, polished tone
-
----
-
-Would you also like a quick **commit message** you can use when pushing this update?  
-(It'll make it super clean on GitHub.)  
-👉 Just say "**yes!**" if you want it! 🚀
