@@ -39,15 +39,6 @@ Ideal for:
 - 🚫 **Friendly Error Handling**: Clear pop‑ups guide you through errors
 - 🍏 **macOS Packaging**: Standalone `.app` bundle and `.dmg` installer via `setup.sh`
 
-```text
-USBdecoder-native.py      # Main PyQt6 GUI application (full source code)
-setup.sh                  # Bootstrap and packaging script for macOS
-build-gui-app.sh           # Helper script called by setup.sh
-usb_decoder_re.png         # App logo/icon
-requirements.txt           # Python dependencies (PyQt6, PyInstaller)
-README.md                  # You're reading it
-```
-
 ---
 
 ## 🚀 Quickstart (from Source)
