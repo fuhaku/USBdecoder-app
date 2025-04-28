@@ -104,6 +104,24 @@ class USBDecoderApp(QWidget):
             if not tokens:
                 raise ValueError('No valid hex bytes found')
             raw = bytes(int(t, 16) for t in tokens)
+        # ─── SUGGEST CORRECT DESCRIPTOR MODE ───
+        descriptor_modes = {
+            1: 'device_descriptor',
+            2: 'configuration_descriptor',
+            3: 'string_descriptor',
+            4: 'interface_descriptor',
+            5: 'endpoint_descriptor',
+        }
+        if len(raw) > 1 and mode in descriptor_modes.values():
+            dt = raw[1]
+            correct = descriptor_modes.get(dt)
+            if correct and correct != mode:
+                QMessageBox.information(
+                    self,
+                    'Did you mean…?',
+                    f"This byte stream has bDescriptorType={dt}.\n"
+                    f"You selected '{mode}', but you probably want '{correct}'."
+                )
 
             if mode == 'device_descriptor':
                 parsed = parse_device_descriptor(raw)
